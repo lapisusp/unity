@@ -1,52 +1,47 @@
-﻿using UnityEngine;
+using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class conexaoBanco : MonoBehaviour
 {
-    private string secretKey = "mySecretKey"; // Edit this value and make sure it's the same as the one stored on the server
-    public string addScoreURL = "http://localhost/unity_test/addscore.php?"; //be sure to add a ? to your url
-    public string highscoreURL = "http://localhost/unity_test/display.php";
+    private string chaveSecreta = "titanic-each-usp"; // Troque este valor e lembre-se de colocar o mesmo no servidor
+    public string salvarPontuacaoURL = "http://lapis.each.usp.br/seuprojeto/salvarPontuacao.php?"; // é necessário ter o "?" após a URL
+    public string recuperarPontuacaoURL = "http://lapis.each.usp.br/seuprojeto/recuperarPontuacao.php?"; // é necessário ter o "?" após a URL
+    public Text mensagem;
 
-    void Start()
-    {
-        StartCoroutine(GetScores());
+    void Start(){
+        StartCoroutine(recuperarPontuacao()); // na chamada destas funções, sempre utilizar StartCoroutine
     }
+    
+    IEnumerator salvarPontuacao(string nome, int pontos){
 
-    // remember to use StartCoroutine when calling this function!
-    IEnumerator PostScores(string name, int score)
-    {
-        //This connects to a server side php script that will add the name and score to a MySQL DB.
-        // Supply it with a string representing the players name and the players score.
-        string hash = MD5Test.Md5Sum(name + score + secretKey);
+        string hash = MD5Test.Md5Sum(nome + pontos + secretKey);
 
-        string post_url = addScoreURL + "name=" + WWW.EscapeURL(name) + "&score=" + score + "&hash=" + hash;
+        string caminho = salvarPontuacaoURL + "nome=" + WWW.EscapeURL(nome) + "&pontos=" + pontos + "&hash=" + hash;
+        WWW conexao = new WWW(caminho);
+        yield return conexao; 
 
-        // Post the URL to the site and create a download object to get the result.
-        WWW hs_post = new WWW(post_url);
-        yield return hs_post; // Wait until the download is done
-
-        if (hs_post.error != null)
-        {
-            print("There was an error posting the high score: " + hs_post.error);
+        if (conexao.error != null){
+            print("Não foi possível salvar a pontuação: " + conexao.error); // exibe o erro no console
         }
     }
 
-    // Get the scores from the MySQL DB to display in a GUIText.
-    // remember to use StartCoroutine when calling this function!
-    IEnumerator GetScores()
-    {
-        gameObject.guiText.text = "Loading Scores";
-        WWW hs_get = new WWW(highscoreURL);
-        yield return hs_get;
+    /* RECUPERAÇÃO DE DADOS DO BANCO */
 
-        if (hs_get.error != null)
-        {
-            print("There was an error getting the high score: " + hs_get.error);
+    IEnumerator recuperarPontuacao(string nome){
+
+        mensagem.text = "Carregando pontuação...";
+
+        string caminho = recuperarPontuacaoURL + "nome=" + WWW.EscapeURL(nome);
+        WWW conexao = new WWW(caminho);
+        yield return conexao;
+
+        if(conexao.error != null){
+            print("Não foi possível recuperar a pontuação: " + conexao.error); // exibe o erro no console
         }
-        else
-        {
-            gameObject.guiText.text = hs_get.text; // this is a GUIText that will display the scores in game.
+        else{
+            mensagem.text = conexao.text; // elemento de texto exibe a pontuação.
         }
-    }
+  }
 
 }
