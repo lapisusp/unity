@@ -1,8 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class selecionarObjetos : MonoBehaviour
-{
+public class selecionarObjetos : MonoBehaviour{
 
     private Vector3 screenPoint;
     private Vector3 offset;
